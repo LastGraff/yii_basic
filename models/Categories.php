@@ -7,6 +7,8 @@ use yii\db\ActiveRecord;
 
 class Categories extends ActiveRecord
 {
+    //public $verifyCode;
+
     public static function tableName()
     {
         return 'categories';
@@ -18,6 +20,7 @@ class Categories extends ActiveRecord
             [['cat_name'], 'required'],
             [['cat_parent_id'], 'integer'],
             [['cat_name'], 'string', 'max' => 45],
+            //['verifyCode', 'captcha'],
         ];
     }
 
@@ -25,7 +28,8 @@ class Categories extends ActiveRecord
     {
         return [
             'cat_id' => 'ID',
-            'cat_name' => 'Категория',
+            'cat_name' => 'Название категории',
+            //'verifyCode' => 'Verification Code',
         ];
     }
 

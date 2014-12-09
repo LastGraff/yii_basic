@@ -7,9 +7,28 @@ use yii\web\Controller;
 use app\models\Categories;
 use app\models\Comments;
 use app\models\Posts;
+use yii\filters\AccessControl;
+use yii\helpers\Url;
 
 class PostsController extends Controller
 {
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'only' => ['update', 'delete'],
+                'rules' => [
+                    [
+                        'actions' => ['update', 'delete'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     public function actionIndex ($postId = null)
     {
         function commentsTree ($input , $id = null, $level = 1)
@@ -43,6 +62,59 @@ class PostsController extends Controller
             }
             $breadCrumbs = array_merge([$breadCrumbs], $breadTmp);
         }
-        return $this->render('posts', ['post' => $postsCurrent, 'comModels' => $comModels, 'breadCrumbs' => $breadCrumbs]);
+        return $this->render('posts', ['post' => $postsCurrent, 'comModels' => $comModels, 'breadCrumbs' => $breadCrumbs, 'postId' => $postId]);
     }
+
+    private function edit ($model)
+    {
+        $breadCrumbs = ['label'=>'Blog', 'url'=>['/categories', 'catId'=>null]];
+        $catTmp = Categories::findOne($model->posts_cat_id);
+        $breadTmp = $catTmp ? [['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]] : null;
+        while ($catTmp && $catTmp = Categories::findOne($catTmp->cat_parent_id))
+        {
+            $breadTmp = array_merge([['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]], $breadTmp);
+        }
+        $breadCrumbs = $breadTmp ? array_merge([$breadCrumbs], $breadTmp) : [$breadCrumbs];
+        return $this->render('edit', [
+            'model' => $model,
+            'breadCrumbs' => $breadCrumbs,
+        ]);
+    }
+
+    public function actionUpdate ($postId = null)
+    {
+        $model = Posts::findOne($postId);
+        if (!$model)
+        {
+            $model = new Posts();
+        }
+        if ($model->load(Yii::$app->request->post())) {
+            $model->save();
+            $this->redirect(Url::toRoute(['index','postId'=>$model->posts_id]));
+        } else {
+            return $this->edit($model);
+        }
+
+    }
+
+    public function actionDelete ($postId = null)
+    {
+        $model = Posts::findOne($postId);
+        if ($model)
+            $model->delete();
+        $this->redirect($_SERVER['HTTP_REFERER']);
+    }
+
+    public function actionCreate ($catId = null)
+    {
+        $model = new Posts();
+        $model->posts_cat_id = $catId;
+        if ($model->load(Yii::$app->request->post())) {
+            $model->save();
+            $this->redirect(Url::toRoute(['index','postId'=>$model->posts_id]));
+        } else {
+            return $this->edit($model);
+        }
+    }
+
 }

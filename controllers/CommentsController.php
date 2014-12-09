@@ -10,8 +10,7 @@ use app\models\Posts;
 use yii\filters\AccessControl;
 use yii\helpers\Url;
 
-
-class CategoriesController extends Controller
+class CommentsController extends Controller
 {
     public function behaviors()
     {
@@ -30,30 +29,13 @@ class CategoriesController extends Controller
         ];
     }
 
-    public function actionIndex ($catId = null)
-    {
-        $catModels = Categories::findAll(['cat_parent_id' => $catId]);
-        $postsModels = Posts::findAll(['posts_cat_id' => $catId]);
-        $breadCrumbs = [['label'=>'Blog']];
-        if ($catId)
-        {
-            $breadCrumbs = array_merge( $breadCrumbs[0],['url'=>['/categories', 'catId'=>null]]);
-            $catTmp = Categories::findOne($catId);
-            $breadTmp = [['label'=> $catTmp->cat_name]];
-            while ($catTmp = Categories::findOne($catTmp->cat_parent_id))
-            {
-                $breadTmp = array_merge([['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]], $breadTmp);
-            }
-            $breadCrumbs = array_merge([$breadCrumbs], $breadTmp);
-        }
-        return $this->render('categories', ['catModels' => $catModels, 'postsModels' => $postsModels, 'breadCrumbs' => $breadCrumbs, 'catId' => $catId]);
-    }
-
     private function edit ($model)
     {
         $breadCrumbs = ['label'=>'Blog', 'url'=>['/categories', 'catId'=>null]];
-        $catTmp = Categories::findOne($model->cat_parent_id);
-        $breadTmp = $catTmp ? [['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]] : null;
+        $postTmp = Posts::findOne($model->com_posts_id);
+        $catTmp = Categories::findOne($postTmp->posts_cat_id);
+        $breadTmp =[['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]];
+        $breadTmp[] = ['label'=> $postTmp->posts_name, 'url'=>['/posts','postId'=>$postTmp->posts_id]];
         while ($catTmp && $catTmp = Categories::findOne($catTmp->cat_parent_id))
         {
             $breadTmp = array_merge([['label'=> $catTmp->cat_name, 'url'=>['/categories','catId'=>$catTmp->cat_id]]], $breadTmp);
@@ -65,37 +47,38 @@ class CategoriesController extends Controller
         ]);
     }
 
-    public function actionUpdate ($catId = null)
+    public function actionUpdate ($comId = null)
     {
-        $model = Categories::findOne($catId);
+        $model = Comments::findOne($comId);
         if (!$model)
         {
-            $model = new Categories();
+            $model = new Comments();
         }
         if ($model->load(Yii::$app->request->post())) {
             $model->save();
-            $this->redirect(Url::toRoute(['index','catId'=>$catId]));
+            $this->redirect(Url::toRoute(['posts/index','postId'=>$model->com_posts_id]));
         } else {
             return $this->edit($model);
         }
 
     }
 
-    public function actionDelete ($catId = null)
+    public function actionDelete ($comId = null)
     {
-        $model = Categories::findOne($catId);
+        $model = Comments::findOne($comId);
         if ($model)
             $model->delete();
         $this->redirect($_SERVER['HTTP_REFERER']);
     }
 
-    public function actionCreate ($parentId = null)
+    public function actionCreate ($postId = null, $comId = null)
     {
-        $model = new Categories();
-        $model->cat_parent_id = $parentId;
+        $model = new Comments();
+        $model->com_posts_id = $postId;
+        $model->com_com_id = $comId;
         if ($model->load(Yii::$app->request->post())) {
             $model->save();
-            $this->redirect(Url::toRoute(['index','catId'=>$parentId]));
+            $this->redirect(Url::toRoute(['posts/index','postId'=>$postId]));
         } else {
             return $this->edit($model);
         }
