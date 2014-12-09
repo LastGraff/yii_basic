@@ -21,8 +21,8 @@ $this->params['breadcrumbs'] = $breadCrumbs;
             <?php $form = ActiveForm::begin(['id' => 'edit-form', 'method' => 'post']); ?>
             <?= $form->field($model, 'com_author') ?>
             <?= $form->field($model, 'com_text')->textArea(['rows' => 8]) ?>
-            <?= $form->field($model, 'com_id')->hiddenInput() ?>
-            <?= $form->field($model, 'com_posts_id')->hiddenInput() ?>
+            <?= $form->field($model, 'com_id')->hiddenInput()->label(false) ?>
+            <?= $form->field($model, 'com_posts_id')->hiddenInput()->label(false) ?>
 
             <div class="form-group">
                 <?= Html::submitButton('Submit', ['class' => 'btn btn-primary', 'name' => 'edit-button']) ?>

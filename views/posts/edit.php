@@ -22,8 +22,8 @@ $this->params['breadcrumbs'] = $breadCrumbs;
             <?= $form->field($model, 'posts_name') ?>
             <?= $form->field($model, 'posts_author') ?>
             <?= $form->field($model, 'posts_text')->textArea(['rows' => 8]) ?>
-            <?= $form->field($model, 'posts_id')->hiddenInput() ?>
-            <?= $form->field($model, 'posts_cat_id')->hiddenInput() ?>
+            <?= $form->field($model, 'posts_id')->hiddenInput()->label(false) ?>
+            <?= $form->field($model, 'posts_cat_id')->hiddenInput()->label(false) ?>
 
             <div class="form-group">
                 <?= Html::submitButton('Submit', ['class' => 'btn btn-primary', 'name' => 'edit-button']) ?>
